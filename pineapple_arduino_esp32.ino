@@ -59,13 +59,13 @@ void loop() {
   digitalWrite(32, HIGH);
   // Serial.println("test");
   // digitalWrite(15, LOW);
-  hspi.write(b);
+  uint8_t hspi_ret = hspi.transfer(b);
   // hspi.transfer(b);
   // hspi.writeBytes(b_array, 8);
   // digitalWrite(15, HIGH);
 
   // digitalWrite(5, LOW);
-  vspi.write(b);
+  uint8_t vspi_ret = vspi.transfer(b);
   // vspi.writeBytes(b_array, 8);
   // digitalWrite(5, HIGH);
   delay(500);
