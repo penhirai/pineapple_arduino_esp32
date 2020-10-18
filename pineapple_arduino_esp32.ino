@@ -24,8 +24,22 @@ SPIClass hspi(HSPI);
  */
 SPIClass vspi(VSPI);
 
+volatile int timeCounter1;
+hw_timer_t *timer1 = NULL;    // For measurement
+portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
+
 byte b=0b10100110;
 byte b_array[8];
+static bool is_gpio = LOW;
+
+void IRAM_ATTR onTimer1(){
+  // Increment the counter and set the time of ISR
+  portENTER_CRITICAL_ISR(&timerMux);
+  timeCounter1++;
+  digitalWrite(32, is_gpio);
+  is_gpio = !is_gpio;
+  portEXIT_CRITICAL_ISR(&timerMux);
+}
 
 void setup() {
   Serial.begin(921600);
@@ -52,11 +66,22 @@ void setup() {
   for(int i=0; i<8; i++){
     b_array[i] = b;  
   }
-  pinMode(32, OUTPUT); 
+  pinMode(32, OUTPUT);
+
+  timer1 = timerBegin(0, 80, true);
+
+  // Attach onTimer function.
+  timerAttachInterrupt(timer1, &onTimer1, true);
+
+  // Set alarm to call onTimer function every second (value in microseconds).
+  timerAlarmWrite(timer1, 1000, true);
+
+  // Start an alarm
+  timerAlarmEnable(timer1);
 }
 
 void loop() {
-  digitalWrite(32, HIGH);
+  // digitalWrite(32, HIGH);
   // Serial.println("test");
   // digitalWrite(15, LOW);
   uint8_t hspi_ret = hspi.transfer(b);
@@ -69,6 +94,6 @@ void loop() {
   // vspi.writeBytes(b_array, 8);
   // digitalWrite(5, HIGH);
   delay(500);
-  digitalWrite(32, LOW);
+  // digitalWrite(32, LOW);
   delay(500);
 }
