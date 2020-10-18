@@ -30,6 +30,8 @@ portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 byte b=0b10100110;
 byte b_array[8];
+uint8_t out_buffer[2] = {0xFF};
+uint8_t in_buffer[2] = {0x00};
 static bool is_gpio = LOW;
 
 void IRAM_ATTR onTimer1(){
@@ -52,14 +54,14 @@ void setup() {
   // digitalWrite(15, HIGH);
   hspi.begin(14, 13, 12, 15);
   // hspi.beginTransaction(SPISettings(7000000, SPI_MSBFIRST, SPI_MODE0));
-  hspi.setFrequency(7000000); //SSD1331 のSPI Clock Cycle Time 最低150ns
+  hspi.setFrequency(5000); //SSD1331 のSPI Clock Cycle Time 最低150ns
   hspi.setDataMode(SPI_MODE0);
   hspi.setHwCs(true);
 
   // pinMode(5, OUTPUT);
   // digitalWrite(5, HIGH);
   vspi.begin(18, 23, 19, 5);
-  vspi.setFrequency(5000000); //SSD1331 のSPI Clock Cycle Time 最低150ns
+  vspi.setFrequency(500000); //SSD1331 のSPI Clock Cycle Time 最低150ns
   vspi.setDataMode(SPI_MODE0);
   vspi.setHwCs(true);
 
@@ -84,16 +86,21 @@ void loop() {
   // digitalWrite(32, HIGH);
   // Serial.println("test");
   // digitalWrite(15, LOW);
-  uint8_t hspi_ret = hspi.transfer(b);
+  hspi.transferBytes(out_buffer, in_buffer, 2);
   // hspi.transfer(b);
   // hspi.writeBytes(b_array, 8);
   // digitalWrite(15, HIGH);
 
   // digitalWrite(5, LOW);
-  uint8_t vspi_ret = vspi.transfer(b);
+  vspi.transferBytes(out_buffer, in_buffer, 2);
   // vspi.writeBytes(b_array, 8);
   // digitalWrite(5, HIGH);
-  delay(500);
+  // delay(500);
   // digitalWrite(32, LOW);
-  delay(500);
+  // delay(500);
+  Serial.print(in_buffer[0]);
+  Serial.print(", ");
+  Serial.println(in_buffer[1]);
+  const uint16_t master_enc = (in_buffer[0] & 0x7F) << 8 | in_buffer[1] >> 0;
+  Serial.println(master_enc);
 }
